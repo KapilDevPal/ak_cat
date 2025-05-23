@@ -1,0 +1,405 @@
+<!-- app/views/share_link_tracker/links/infographic.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>URL Shortener - Analytics</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <%= stylesheet_link_tag "share_link_tracker/application" %>
+  <%= javascript_include_tag "share_link_tracker/application", defer: true %>
+</head>
+<body>
+<%= render 'share_link_tracker/shared/navigation' %>
+
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <h1>Link Analytics Dashboard</h1>
+      
+      <div class="link-info">
+        <h2><%= @link.original_url %></h2>
+        <p>Short URL: <%= link_to request.base_url + share_link_tracker.short_link_path(@link.short_url), 
+                    share_link_tracker.short_link_path(@link.short_url), 
+                    target: "_blank" %></p>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value"><%= @link.clicks_count %></div>
+          <div class="stat-label">Total Clicks</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @link.link_visits.count %></div>
+          <div class="stat-label">Total Visits</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @link.link_visits.distinct.count(:ip_address) %></div>
+          <div class="stat-label">Unique Visitors</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @link.link_visits.distinct.count(:device_type) %></div>
+          <div class="stat-label">Device Types</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-body">
+              <h2>Recent Activity</h2>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>IP Address</th>
+                      <th>Device</th>
+                      <th>Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @link.link_visits.order(created_at: :desc).limit(10).each do |visit| %>
+                      <tr>
+                        <td><%= visit.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+                        <td><%= visit.ip_address %></td>
+                        <td><%= visit.device_type %></td>
+                        <td><%= visit.location.presence || 'Unknown' %></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h2>Growth Over Time</h2>
+              <div class="chart-container" style="height: 300px;">
+                <canvas id="growthChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Device Types</h5>
+              <div style="height: 250px; position: relative;">
+                <canvas id="deviceChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h2>Location Distribution</h2>
+              <div class="chart-container" style="height: 300px;">
+                <canvas id="locationChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h2>Visit Times</h2>
+              <div class="chart-container" style="height: 300px;">
+                <canvas id="timeChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-body">
+              <h2>Daily Statistics</h2>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Total Visits</th>
+                      <th>Unique Visitors</th>
+                      <th>Growth Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @visits_by_date.each do |date, count| %>
+                      <tr>
+                        <td><%= date %></td>
+                        <td><%= count %></td>
+                        <td><%= @unique_visitors_by_date[date] || 0 %></td>
+                        <td>
+                          <% date_obj = date.is_a?(String) ? Date.parse(date) : date %>
+                          <% prev_date = date_obj - 1.day %>
+                          <% prev_count = @visits_by_date[prev_date.to_s] || 0 %>
+                          <% if prev_count > 0 %>
+                            <%= (((count - prev_count).to_f / prev_count) * 100).round(2) %>%
+                          <% else %>
+                            -
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="actions mt-4">
+        <%= link_to "Back to Links", share_link_tracker.links_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data for charts -->
+<div data-controller="charts" 
+     data-charts-dates-value="<%= @chart_data[:dates].to_json %>"
+     data-charts-visit-counts-value="<%= @chart_data[:visit_counts].to_json %>"
+     data-charts-cumulative-visits-value="<%= @cumulative_visits.to_json %>"
+     data-charts-unique-visitors-value="<%= @chart_data[:unique_visitors].to_json %>"
+     data-charts-device-data-value="<%= @chart_data[:device_data].to_json %>"
+     data-charts-location-data-value="<%= @chart_data[:location_data].to_json %>"
+     data-charts-time-data-value="<%= @chart_data[:time_data].to_json %>">
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get data from data attributes
+    const chartsController = document.querySelector('[data-controller="charts"]');
+    const dates = JSON.parse(chartsController.dataset.chartsDatesValue);
+    const visitCounts = JSON.parse(chartsController.dataset.chartsVisitCountsValue);
+    const cumulativeVisits = JSON.parse(chartsController.dataset.chartsCumulativeVisitsValue);
+    const uniqueVisitors = JSON.parse(chartsController.dataset.chartsUniqueVisitorsValue);
+    const deviceData = JSON.parse(chartsController.dataset.chartsDeviceDataValue);
+    const locationData = JSON.parse(chartsController.dataset.chartsLocationDataValue);
+    const timeData = JSON.parse(chartsController.dataset.chartsTimeDataValue);
+    
+    // Create growth chart
+    const growthCtx = document.getElementById('growthChart').getContext('2d');
+    new Chart(growthCtx, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Daily Visits',
+            data: visitCounts,
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Cumulative Visits',
+            data: cumulativeVisits,
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Unique Visitors',
+            data: uniqueVisitors,
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Visit Growth Over Time'
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Visits'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          }
+        }
+      }
+    });
+    
+    // Device distribution chart
+    const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+    
+    const deviceLabels = Object.keys(deviceData);
+    const deviceColors = ['#FF6384', '#36A2EB', '#FFCE56'];
+    
+    const deviceChart = new Chart(
+      deviceCtx,
+      {
+        type: 'doughnut',
+        data: {
+          labels: deviceLabels,
+          datasets: [{
+            data: deviceData,
+            backgroundColor: deviceColors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 10,
+                font: {
+                  size: 12
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      }
+    );
+    
+    // Location chart
+    const locationCtx = document.getElementById('locationChart').getContext('2d');
+    
+    new Chart(locationCtx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(locationData),
+        datasets: [{
+          label: 'Visits',
+          data: Object.values(locationData),
+          backgroundColor: '#3498db'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Location Distribution'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Visits'
+            }
+          }
+        }
+      }
+    });
+    
+    // Time of day chart
+    const timeCtx = document.getElementById('timeChart').getContext('2d');
+    
+    const hours = Array.from({length: 24}, (_, i) => i);
+    const visitsByHour = hours.map(hour => timeData[hour.toString().padStart(2, '0')] || 0);
+    
+    new Chart(timeCtx, {
+      type: 'line',
+      data: {
+        labels: hours.map(h => `${h}:00`),
+        datasets: [{
+          label: 'Visits',
+          data: visitsByHour,
+          borderColor: '#9b59b6',
+          backgroundColor: 'rgba(155, 89, 182, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Visit Times'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Visits'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Hour of Day'
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+</body>
+</html> 

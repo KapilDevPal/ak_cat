@@ -1,0 +1,377 @@
+<!-- app/views/share_link_tracker/links/new.html.erb -->
+<div class="page-container">
+  <div class="card">
+    <div class="card-header">
+      <h1><i class="fas fa-link"></i> URL Shortener</h1>
+      <p class="subtitle">Create your shortened URL in seconds</p>
+    </div>
+    
+    <% if @link && @link.persisted? %>
+      <div class="success-message">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>Your Link is Ready!</h2>
+        
+        <div class="shortened-link-container">
+          <div class="shortened-link">
+            <input type="text" id="shortened-url" value="<%= request.base_url + share_link_tracker.link_path(@link.short_url) %>" readonly>
+            <button id="copy-button" class="btn btn-primary">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <div id="copy-message" class="copy-message"></div>
+        </div>
+        
+        <div class="share-options">
+          <h3>Share via</h3>
+          <div class="share-buttons">
+            <a href="https://twitter.com/intent/tweet?url=<%= URI.encode_www_form_component(request.base_url + share_link_tracker.link_path(@link.short_url)) %>&text=<%= URI.encode_www_form_component('Check out this link!') %>" target="_blank" class="btn btn-twitter">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=<%= URI.encode_www_form_component(request.base_url + share_link_tracker.link_path(@link.short_url)) %>" target="_blank" class="btn btn-facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= URI.encode_www_form_component(request.base_url + share_link_tracker.link_path(@link.short_url)) %>&title=<%= URI.encode_www_form_component('Check out this link!') %>" target="_blank" class="btn btn-linkedin">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="mailto:?subject=Check out this link!&body=<%= URI.encode_www_form_component('I thought you might be interested in this link: ' + request.base_url + share_link_tracker.link_path(@link.short_url)) %>" class="btn btn-email">
+              <i class="fas fa-envelope"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <%= link_to new_link_path, class: "btn btn-outline" do %>
+            <i class="fas fa-plus"></i> Create New Link
+          <% end %>
+          <%= link_to links_path, class: "btn btn-outline" do %>
+            <i class="fas fa-list"></i> View All Links
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <%= form_with(model: @link, url: share_link_tracker.links_path, local: true, class: "form") do |f| %>
+        <% if @link.errors.any? %>
+          <div class="error-messages">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2><%= pluralize(@link.errors.count, "error") %> prohibited this link from being saved:</h2>
+            <ul>
+              <% @link.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        
+        <div class="form-group">
+          <div class="input-group">
+            <div class="input-icon">
+              <i class="fas fa-globe"></i>
+            </div>
+            <%= f.text_field :original_url, class: "form-control", placeholder: "Paste your long URL here..." %>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <%= button_tag(type: 'submit', class: "btn btn-primary btn-lg") do %>
+            <i class="fas fa-magic"></i> Shorten URL
+          <% end %>
+          <%= link_to share_link_tracker.links_path, class: "btn btn-outline" do %>
+            <i class="fas fa-arrow-left"></i> Back to Links
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .page-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .card-header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    opacity: 0.9;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .form {
+    padding: 2rem;
+  }
+
+  .input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 1.1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+
+  .btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  .btn-primary {
+    background: #6366f1;
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid #6366f1;
+    color: #6366f1;
+  }
+
+  .btn-outline:hover {
+    background: #6366f1;
+    color: white;
+  }
+
+  .success-message {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .success-icon {
+    font-size: 3rem;
+    color: #10b981;
+    margin-bottom: 1rem;
+  }
+
+  .shortened-link-container {
+    margin: 2rem 0;
+  }
+
+  .shortened-link {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .shortened-link input {
+    flex-grow: 1;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #374151;
+  }
+
+  .copy-message {
+    margin-top: 0.5rem;
+    color: #10b981;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .copy-message.show {
+    opacity: 1;
+  }
+
+  .share-options {
+    margin: 2rem 0;
+  }
+
+  .share-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .share-buttons .btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .btn-twitter {
+    background: #1da1f2;
+    color: white;
+  }
+
+  .btn-facebook {
+    background: #4267b2;
+    color: white;
+  }
+
+  .btn-linkedin {
+    background: #0077b5;
+    color: white;
+  }
+
+  .btn-email {
+    background: #ea4335;
+    color: white;
+  }
+
+  .actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .error-messages {
+    background: #fee2e2;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #991b1b;
+  }
+
+  .error-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .card-header h1 {
+      font-size: 2rem;
+    }
+
+    .form {
+      padding: 1.5rem;
+    }
+
+    .actions {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const copyButton = document.getElementById('copy-button');
+    const copyMessage = document.getElementById('copy-message');
+    
+    if (copyButton) {
+      copyButton.addEventListener('click', function() {
+        const shortenedUrl = document.getElementById('shortened-url');
+        
+        // Select the text
+        shortenedUrl.select();
+        shortenedUrl.setSelectionRange(0, 99999); // For mobile devices
+        
+        try {
+          // Try the modern clipboard API first
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(shortenedUrl.value).then(function() {
+              showCopyMessage();
+            }).catch(function(err) {
+              console.error('Could not copy text: ', err);
+              fallbackCopy();
+            });
+          } else {
+            // Fallback for older browsers
+            fallbackCopy();
+          }
+        } catch (err) {
+          console.error('Error copying text: ', err);
+          fallbackCopy();
+        }
+      });
+      
+      function fallbackCopy() {
+        try {
+          // Fallback for older browsers
+          const successful = document.execCommand('copy');
+          if (successful) {
+            showCopyMessage();
+          } else {
+            console.error('Fallback: Oops, unable to copy');
+          }
+        } catch (err) {
+          console.error('Fallback: Oops, unable to copy', err);
+        }
+      }
+      
+      function showCopyMessage() {
+        copyMessage.textContent = 'Link copied to clipboard!';
+        copyMessage.classList.add('show');
+        
+        setTimeout(function() {
+          copyMessage.classList.remove('show');
+        }, 3000);
+      }
+    }
+  });
+</script>

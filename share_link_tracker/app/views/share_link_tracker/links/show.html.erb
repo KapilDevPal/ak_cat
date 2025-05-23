@@ -1,0 +1,55 @@
+<!-- app/views/share_link_tracker/links/show.html.erb -->
+<div class="card">
+  <h1>Shortened Link Details</h1>
+
+  <div class="link-details">
+    <div class="detail-item">
+      <strong>Original URL:</strong> 
+      <a href="<%= @link.original_url %>" target="_blank"><%= @link.original_url %></a>
+    </div>
+    
+    <div class="detail-item">
+      <strong>Short URL:</strong> 
+      <div class="short-url-container">
+        <span id="short-url"><%= request.base_url + share_link_tracker.link_path(@link.short_url) %></span>
+        <button id="copy-button" class="btn btn-copy" data-clipboard-target="#short-url">
+          <span class="copy-icon">📋</span> Copy
+        </button>
+      </div>
+    </div>
+    
+    <div class="detail-item">
+      <strong>Clicks Count:</strong> <span class="highlight"><%= @link.clicks_count %></span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= link_to "View Analytics", share_link_tracker.analytics_link_path(@link.short_url), class: "btn" %>
+    <%= link_to "View Infographic", share_link_tracker.infographic_link_path(@link.short_url), class: "btn" %>
+    <%= link_to "Back to Links", share_link_tracker.links_path, class: "btn" %>
+  </div>
+</div>
+
+<!-- Include clipboard.js for copy functionality -->
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize clipboard.js
+    var clipboard = new ClipboardJS('#copy-button');
+    
+    // Show success message when copied
+    clipboard.on('success', function(e) {
+      var button = document.getElementById('copy-button');
+      button.innerHTML = '<span class="copy-icon">✓</span> Copied!';
+      button.classList.add('copied');
+      
+      // Reset button after 2 seconds
+      setTimeout(function() {
+        button.innerHTML = '<span class="copy-icon">📋</span> Copy';
+        button.classList.remove('copied');
+      }, 2000);
+      
+      e.clearSelection();
+    });
+  });
+</script> 

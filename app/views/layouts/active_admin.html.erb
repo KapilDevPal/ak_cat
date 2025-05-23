@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= ActiveAdmin.application.site_title %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  
+  <%= stylesheet_link_tag "active_admin", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "active_admin", "data-turbo-track": "reload", defer: true %>
+  
+  <style>
+    /* Basic ActiveAdmin-like styling */
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #323537;
+      background-color: #f4f5f6;
+      margin: 0;
+    }
+    
+    #header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    #header h1 {
+      margin: 0;
+    }
+    
+    #header a {
+      color: white;
+      text-decoration: none;
+    }
+    
+    #header ul {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #header ul li {
+      margin-left: 20px;
+    }
+    
+    #active_admin_content {
+      display: flex;
+      padding: 20px;
+    }
+    
+    #main_content_wrapper {
+      flex: 1;
+      margin-right: 20px;
+    }
+    
+    #sidebar {
+      width: 270px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+    
+    .panel {
+      margin-bottom: 20px;
+      background-color: white;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .panel h3 {
+      padding: 10px 15px;
+      margin: 0;
+      background-color: #eef1f3;
+      border-radius: 4px 4px 0 0;
+    }
+    
+    .panel_contents {
+      padding: 15px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .btn, input[type="submit"] {
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn:hover, input[type="submit"]:hover {
+      background-color: #1b5e20;
+    }
+    
+    input[type="text"], input[type="password"], input[type="email"], textarea, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .field {
+      margin-bottom: 15px;
+    }
+    
+    .flash {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    
+    .flash_notice {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .flash_alert, .flash_error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><%= ActiveAdmin.application.site_title %></h1>
+      <% if current_admin_user %>
+        <div id="utility_nav">
+          <span><%= current_admin_user.email %></span>
+          <%= link_to "Logout", "/admin/logout" %>
+        </div>
+      <% end %>
+    </div>
+    
+    <div id="content">
+      <% if flash[:notice] %>
+        <div class="flash flash_notice"><%= flash[:notice] %></div>
+      <% end %>
+      <% if flash[:error] %>
+        <div class="flash flash_error"><%= flash[:error] %></div>
+      <% end %>
+      
+      <%= yield %>
+    </div>
+  </div>
+</body>
+</html> 

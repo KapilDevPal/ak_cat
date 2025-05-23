@@ -1,0 +1,119 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Profiles</h1>
+    <%= link_to "Create Profile", select_type_profiles_path, class: "btn btn-success" %>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <%= form_tag profiles_path, method: :get, class: "mb-0" do %>
+            <div class="input-group">
+              <%= text_field_tag :search, params[:search], class: "form-control", placeholder: "Search by name, location or occupation..." %>
+              <%= hidden_field_tag :type, params[:type] if params[:type].present? %>
+              <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i> Search
+              </button>
+            </div>
+          <% end %>
+        </div>
+        <div class="col-md-6">
+          <div class="btn-group float-md-end" role="group">
+            <%= link_to "All Profiles", profiles_path, class: "btn #{params[:type].blank? ? 'btn-primary' : 'btn-outline-primary'}" %>
+            <%= link_to "Marriage", profiles_path(type: 'marriage', search: params[:search]), 
+                class: "btn #{params[:type] == 'marriage' ? 'btn-danger' : 'btn-outline-danger'}" %>
+            <%= link_to "Professional", profiles_path(type: 'professional', search: params[:search]), 
+                class: "btn #{params[:type] == 'professional' ? 'btn-success' : 'btn-outline-success'}" %>
+            <%= link_to "Generic", profiles_path(type: 'generic', search: params[:search]), 
+                class: "btn #{params[:type] == 'generic' ? 'btn-info' : 'btn-outline-info'}" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @profiles.empty? %>
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle me-2"></i>
+      No profiles found. Try different search criteria or <%= link_to "create a new profile", select_type_profiles_path %>.
+    </div>
+  <% else %>
+    <div class="row">
+      <% @profiles.each do |profile| %>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 profile-card">
+            <% if profile.photo.present? %>
+              <%= image_tag profile.photo.medium.url, class: "card-img-top profile-img" %>
+            <% else %>
+              <div class="card-img-top bg-light text-center p-5 profile-img">
+                <i class="fas fa-user fa-5x text-muted"></i>
+              </div>
+            <% end %>
+            <div class="card-body">
+              <% badge_class = case profile.profile_type
+                               when 'marriage'
+                                 'bg-danger'
+                               when 'professional'
+                                 'bg-success'
+                               else
+                                 'bg-info'
+                               end %>
+              <span class="badge <%= badge_class %> float-end">
+                <%= profile.profile_type.titleize %>
+              </span>
+              <h5 class="card-title"><%= profile.first_name %> <%= profile.last_name %></h5>
+              <p class="card-text">
+                <% if profile.location.present? %>
+                  <i class="fas fa-map-marker-alt me-1 text-muted"></i> <%= profile.location %><br>
+                <% end %>
+                
+                <% case profile.profile_type %>
+                <% when 'marriage' %>
+                  <% if profile.date_of_birth.present? %>
+                    <i class="fas fa-birthday-cake me-1 text-muted"></i> <%= ((Date.today - profile.date_of_birth) / 365.25).floor %> years<br>
+                  <% end %>
+                  <% if profile.occupation.present? %>
+                    <i class="fas fa-briefcase me-1 text-muted"></i> <%= profile.occupation %><br>
+                  <% end %>
+                <% when 'professional' %>
+                  <% if profile.title.present? %>
+                    <i class="fas fa-id-badge me-1 text-muted"></i> <%= profile.title %><br>
+                  <% end %>
+                  <% if profile.company.present? %>
+                    <i class="fas fa-building me-1 text-muted"></i> <%= profile.company %>
+                  <% end %>
+                <% when 'generic' %>
+                  <% if profile.hobbies.present? %>
+                    <i class="fas fa-heart me-1 text-muted"></i> <%= truncate(profile.hobbies, length: 50) %>
+                  <% end %>
+                <% end %>
+              </p>
+            </div>
+            <div class="card-footer bg-white border-top-0">
+              <%= link_to "View Profile", profile_path(profile), class: "btn btn-sm btn-primary stretched-link" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .profile-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .profile-img {
+    height: 200px;
+    object-fit: cover;
+  }
+</style> 

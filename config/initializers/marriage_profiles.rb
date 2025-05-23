@@ -1,0 +1,1 @@
+require 'marriage_profiles/engine' 

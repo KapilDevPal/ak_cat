@@ -1,0 +1,55 @@
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>You are creating a <strong>Generic Profile</strong> for personal sharing or casual use.
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group mb-3">
+      <%= f.label :first_name, class: "form-label" %>
+      <%= f.text_field :first_name, class: "form-control", required: true %>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="form-group mb-3">
+      <%= f.label :last_name, class: "form-label" %>
+      <%= f.text_field :last_name, class: "form-control", required: true %>
+    </div>
+  </div>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :bio, class: "form-label" %>
+  <%= f.text_area :bio, class: "form-control", rows: 5, required: true %>
+  <div class="form-text">Minimum 50 characters, maximum 1000 characters.</div>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :location, class: "form-label" %>
+  <%= f.text_field :location, class: "form-control", required: true %>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :hobbies, class: "form-label" %>
+  <%= f.text_area :hobbies, class: "form-control", rows: 3, placeholder: "Share your hobbies and interests" %>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :social_links, class: "form-label" %>
+  <%= f.text_area :social_links, class: "form-control", rows: 3, placeholder: "Add links to your social media profiles" %>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :availability_status, class: "form-label" %>
+  <%= f.select :availability_status, ['Available', 'Busy', 'Do Not Disturb', 'Away'], 
+        { include_blank: "Select Status" }, class: "form-control" %>
+</div>
+
+<div class="form-group mb-3">
+  <%= f.label :cover_image, class: "form-label" %>
+  <%= f.file_field :cover_image, class: "form-control", accept: "image/*" %>
+  <% if profile.cover_image.present? %>
+    <div class="mt-2">
+      <%= image_tag profile.cover_image.url, class: "img-thumbnail", width: 300 %>
+    </div>
+  <% end %>
+</div> 

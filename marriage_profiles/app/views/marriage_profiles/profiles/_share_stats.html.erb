@@ -1,0 +1,109 @@
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">
+      <i class="fas fa-chart-line me-2"></i>Share Statistics
+    </h5>
+  </div>
+  <div class="card-body">
+    <% if existing_link = ShareLinkTracker::Link.find_by(original_url: profile_url(profile)) %>
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h6>Shareable Link:</h6>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control form-control-sm" value="<%= "/share_link_tracker/#{existing_link.short_url}" %>" readonly>
+            <button class="btn btn-outline-primary btn-sm" type="button" onclick="copyText(this)">Copy</button>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-3">
+            <div>
+              <h6 class="mb-1">Total Clicks</h6>
+              <h3 class="text-primary"><%= existing_link.clicks_count || 0 %></h3>
+            </div>
+            <div>
+              <h6 class="mb-1">Unique Visitors</h6>
+              <h3 class="text-success"><%= existing_link.link_visits.distinct.count(:ip_address) || 0 %></h3>
+            </div>
+            <div>
+              <h6 class="mb-1">First Shared</h6>
+              <span class="text-muted"><%= existing_link.created_at.strftime("%b %d, %Y") %></span>
+            </div>
+          </div>
+          
+          <% if existing_link.device_type_stats.any? %>
+            <h6>Device Types:</h6>
+            <ul class="list-unstyled small">
+              <% existing_link.device_type_stats.each do |device, count| %>
+                <li><i class="fas <%= device == 'Mobile' ? 'fa-mobile-alt' : (device == 'Tablet' ? 'fa-tablet-alt' : 'fa-desktop') %> me-2"></i> <%= device %>: <%= count %> visits</li>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
+        <div class="col-md-6 text-center">
+          <div class="mb-3">
+            <canvas id="visitsChart" width="200" height="200"></canvas>
+          </div>
+          <%= link_to "View Detailed Statistics", "/share_link_tracker/infographic/#{existing_link.short_url}", class: "btn btn-sm btn-outline-primary", target: "_blank" %>
+        </div>
+      </div>
+      
+      <script>
+        function copyText(button) {
+          const input = button.previousElementSibling;
+          input.select();
+          document.execCommand('copy');
+          
+          // Change button text temporarily
+          const originalText = button.textContent;
+          button.textContent = 'Copied!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 2000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+          // Simple visits chart
+          const ctx = document.getElementById('visitsChart').getContext('2d');
+          const labels = <%= raw (existing_link.link_visits.order('created_at DESC').limit(7).map { |visit| visit.created_at.strftime("%b %d") }.reverse).to_json %>;
+          const data = [<%= existing_link.link_visits.group("DATE(created_at)").order('DATE(created_at) DESC').limit(7).count.values.reverse.join(',') %>];
+          
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Visits',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                tension: 0.4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1
+                  }
+                }
+              }
+            }
+          });
+        });
+      </script>
+    <% else %>
+      <div class="text-center py-4">
+        <i class="fas fa-share-alt fa-3x text-muted mb-3"></i>
+        <h5>No sharing activity yet</h5>
+        <p class="text-muted">This profile hasn't been shared using our tracking system.</p>
+        <p>Share your profile to start tracking visits!</p>
+        <button onclick="shareProfile()" class="btn btn-primary">
+          <i class="fas fa-share-alt me-2"></i>Share Profile
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div> 

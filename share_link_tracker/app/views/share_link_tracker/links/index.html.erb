@@ -1,0 +1,37 @@
+<!-- app/views/share_link_tracker/links/index.html.erb -->
+<div class="card">
+  <h1>Your Shortened Links</h1>
+  
+  <%= link_to "Create New Link", share_link_tracker.new_link_path, class: "btn btn-primary" %>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Original URL</th>
+          <th>Short URL</th>
+          <th>Clicks</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @links.each do |link| %>
+          <tr>
+            <td><%= link.original_url %></td>
+            <td>
+              <%= link_to request.base_url + share_link_tracker.short_link_path(link.short_url), 
+                  share_link_tracker.short_link_path(link.short_url), 
+                  target: "_blank" %>
+            </td>
+            <td><%= link.clicks_count %></td>
+            <td><%= link.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+            <td>
+              <%= link_to "View Infographic", share_link_tracker.infographic_link_path(link), class: "btn btn-info" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

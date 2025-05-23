@@ -1,0 +1,87 @@
+<div class="landing-page">
+  <!-- Hero Section -->
+  <div class="hero-section text-center py-5">
+    <div class="container">
+      <h1 class="display-4 mb-4">Find Your Perfect Match</h1>
+      <p class="lead mb-4">Browse marriage profiles and create your own to share with potential matches.</p>
+      <div class="cta-buttons">
+        <% if current_user %>
+          <%= link_to "Create Profile", select_type_profiles_path, class: "btn btn-primary btn-lg me-3" %>
+          <%= link_to "View My Profile", profiles_path, class: "btn btn-success btn-lg" %>
+        <% else %>
+          <%= link_to "Create Profile", select_type_profiles_path, class: "btn btn-primary btn-lg me-3" %>
+          <%= link_to "Browse Profiles", profiles_path, class: "btn btn-outline-primary btn-lg" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features-section py-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-5">Why Choose Us?</h2>
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4">
+            <i class="fas fa-user-shield fa-3x mb-3 text-primary"></i>
+            <h3>Verified Profiles</h3>
+            <p>All profiles are verified to ensure authenticity and safety.</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4">
+            <i class="fas fa-share-alt fa-3x mb-3 text-primary"></i>
+            <h3>Shareable Links</h3>
+            <p>Share your profile with anyone using a unique link.</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4">
+            <i class="fas fa-lock fa-3x mb-3 text-primary"></i>
+            <h3>Privacy Control</h3>
+            <p>Control who can view and contact you through your profile.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured Profiles -->
+  <div class="featured-profiles py-5">
+    <div class="container">
+      <h2 class="text-center mb-5">Featured Profiles</h2>
+      <div class="row">
+        <% @profiles.each do |profile| %>
+          <div class="col-md-4 mb-4">
+            <div class="card h-100">
+              <% if profile.photo.present? %>
+                <%= image_tag profile.photo.medium.url, class: "card-img-top" %>
+              <% else %>
+                <div class="card-img-top bg-light text-center p-5">
+                  <i class="fas fa-user fa-5x text-muted"></i>
+                </div>
+              <% end %>
+              <div class="card-body">
+                <h5 class="card-title"><%= profile.name %>, <%= profile.age || "Age not specified" %></h5>
+                <p class="card-text">
+                  <strong>Location:</strong> <%= profile.location %><br>
+                  <strong>Occupation:</strong> <%= profile.occupation %>
+                </p>
+                <%= link_to "View Profile", profile_path(profile), class: "btn btn-primary" %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="cta-section py-5 bg-primary text-white text-center">
+    <div class="container">
+      <h2 class="mb-4">Ready to Create Your Profile?</h2>
+      <p class="lead mb-4">Join thousands of singles who have found their perfect match through our platform.</p>
+      <%= link_to "Create Your Profile", select_type_profiles_path, class: "btn btn-light btn-lg" %>
+    </div>
+  </div>
+</div> 

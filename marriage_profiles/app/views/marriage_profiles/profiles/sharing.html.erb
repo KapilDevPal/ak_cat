@@ -1,0 +1,325 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i>Profile Sharing Analytics
+          </h4>
+          <div>
+            <%= link_to profile_path(@profile), class: "btn btn-outline-primary btn-sm" do %>
+              <i class="fas fa-arrow-left me-1"></i> Back to Profile
+            <% end %>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card h-100 bg-light">
+                <div class="card-body">
+                  <h5 class="card-title">Profile Details</h5>
+                  <p>
+                    <strong><%= @profile.first_name %> <%= @profile.last_name %></strong><br>
+                    <small class="text-muted"><%= @profile.profile_type.humanize %> Profile</small>
+                  </p>
+                  <p>Created: <%= @profile.created_at.strftime("%b %d, %Y") %></p>
+                  
+                  <h6 class="mt-4">Shareable Link:</h6>
+                  <div class="input-group">
+                    <% if @link %>
+                      <input type="text" class="form-control" id="shareableLink" value="<%= @full_share_url %>" readonly>
+                    <% else %>
+                      <input type="text" class="form-control" id="shareableLink" value="<%= @full_share_url %>" readonly>
+                    <% end %>
+                    <button class="btn btn-outline-primary" type="button" onclick="copyLinkToClipboard()">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                  
+                  <% if @qr_code_url %>
+                    <div class="mt-3 text-center">
+                      <p class="text-muted small">QR Code for sharing:</p>
+                      <img src="<%= @qr_code_url %>" alt="QR Code for profile" class="img-fluid" style="max-width: 150px;">
+                      <%= link_to "#", class: "btn btn-sm btn-outline-secondary mt-2", onclick: "downloadQRCode(); return false;" do %>
+                        <i class="fas fa-download me-1"></i> Download QR Code
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <% if @link %>
+                    <div class="d-flex justify-content-around mb-4">
+                      <div>
+                        <h2 class="display-4 text-primary"><%= @link.clicks_count || 0 %></h2>
+                        <h6>Total Views</h6>
+                      </div>
+                      <div>
+                        <h2 class="display-4 text-success"><%= @link.link_visits.distinct.count(:ip_address) || 0 %></h2>
+                        <h6>Unique Visitors</h6>
+                      </div>
+                    </div>
+                    <p>First shared: <%= @link.created_at.strftime("%B %d, %Y") %></p>
+                    <p>Last view: <%= @link.link_visits.order(created_at: :desc).first&.created_at&.strftime("%B %d, %Y at %H:%M") || "No views yet" %></p>
+                    
+                    <div class="btn-group mt-3">
+                      <button class="btn btn-primary" onclick="shareProfile()">
+                        <i class="fas fa-share-alt me-2"></i>Share Again
+                      </button>
+                      <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="shareOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Options
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="shareOptionsDropdown">
+                        <li>
+                          <a class="dropdown-item" href="https://wa.me/?text=<%= CGI.escape("Check out #{@profile.first_name}'s profile! #{@full_share_url}") %>" target="_blank">
+                            <i class="fab fa-whatsapp text-success me-2"></i>Share on WhatsApp
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="https://www.facebook.com/sharer/sharer.php?u=<%= CGI.escape(@full_share_url) %>" target="_blank">
+                            <i class="fab fa-facebook text-primary me-2"></i>Share on Facebook
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="mailto:?subject=<%= CGI.escape("Check out #{@profile.first_name}'s profile") %>&body=<%= CGI.escape("I thought you might be interested in this profile: #{@full_share_url}") %>">
+                            <i class="fas fa-envelope text-danger me-2"></i>Share via Email
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  <% else %>
+                    <div class="py-4">
+                      <i class="fas fa-share-alt fa-4x text-muted mb-3"></i>
+                      <h5>No sharing activity yet</h5>
+                      <p>Share your profile to start tracking visits!</p>
+                      <button class="btn btn-primary" onclick="shareProfile()">
+                        <i class="fas fa-share-alt me-2"></i>Share Profile
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <% if @link && @link.clicks_count && @link.clicks_count > 0 %>
+            <div class="row">
+              <div class="col-md-8">
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0">Visitor Activity Over Time</h5>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="visitsChart" height="250"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">Device Types</h5>
+                    <div style="height: 300px; position: relative;">
+                      <canvas id="deviceChart" style="max-height: 300px;"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Recent Visits</h5>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover m-0">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        <th>Device</th>
+                        <th>Location</th>
+                        <th>IP Address</th>
+                        <th>Referrer</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if @recent_visits.any? %>
+                        <% @recent_visits.each do |visit| %>
+                          <tr>
+                            <td><%= visit.created_at.strftime("%b %d, %Y %H:%M") %></td>
+                            <td>
+                              <i class="fas <%= visit.device_type.downcase == 'mobile' ? 'fa-mobile-alt' : (visit.device_type.downcase == 'tablet' ? 'fa-tablet-alt' : 'fa-desktop') %> me-2"></i>
+                              <%= visit.device_type %>
+                            </td>
+                            <td><%= visit.location.present? ? visit.location : "Unknown" %></td>
+                            <td><small class="text-muted"><%= visit.ip_address %></small></td>
+                            <td><small class="text-muted"><%= visit.referrer.present? ? (visit.referrer.length > 25 ? "#{visit.referrer[0..25]}..." : visit.referrer) : "Direct" %></small></td>
+                          </tr>
+                        <% end %>
+                      <% else %>
+                        <tr>
+                          <td colspan="5" class="text-center py-4">No visit records available yet.</td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card-footer text-end">
+                <%= link_to "View Detailed Analytics", "/share_link_tracker/infographic/#{@link.short_url}", class: "btn btn-outline-primary btn-sm", target: "_blank" if @link %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function copyLinkToClipboard() {
+    const shareableLink = document.getElementById('shareableLink');
+    shareableLink.select();
+    document.execCommand('copy');
+    
+    // Show a tooltip or notification
+    alert('Link copied to clipboard!');
+  }
+  
+  function shareProfile() {
+    const shareUrl = document.getElementById('shareableLink').value;
+    const profileName = "<%= @profile.first_name %> <%= @profile.last_name %>'s Profile";
+    
+    if (navigator.share) {
+      navigator.share({
+        title: profileName,
+        text: 'Check out this profile on our matrimonial site!',
+        url: shareUrl
+      })
+      .then(() => console.log('Share successful'))
+      .catch((error) => console.log('Error sharing:', error));
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      // Just copy to clipboard
+      copyLinkToClipboard();
+    }
+  }
+  
+  function downloadQRCode() {
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = '<%= @qr_code_url %>';
+    link.download = '<%= @profile.first_name.downcase %>_<%= @profile.last_name.downcase %>_profile_qr.png';
+    
+    // Append to body, click it, and remove it
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  
+  <% if @link && @link.clicks_count && @link.clicks_count > 0 %>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get date labels for the last 7 days
+      const dateLabels = [];
+      const visitCounts = Array(7).fill(0); // Initialize with zeros
+      
+      // Create date labels for the last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dateLabels.push(formattedDate);
+      }
+      
+      // Count visits per day
+      <% @link.link_visits.each do |visit| %>
+        const visitDate = new Date("<%= visit.created_at.strftime('%Y-%m-%d') %>");
+        const now = new Date();
+        const daysDiff = Math.floor((now - visitDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff < 7) {
+          visitCounts[6 - daysDiff]++;
+        }
+      <% end %>
+      
+      // Visits chart (last 7 days)
+      const visitsChart = new Chart(
+        document.getElementById('visitsChart').getContext('2d'),
+        {
+          type: 'line',
+          data: {
+            labels: dateLabels,
+            datasets: [{
+              label: 'Profile Views',
+              data: visitCounts,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        }
+      );
+      
+      // Devices chart
+      const deviceLabels = [];
+      const deviceData = [];
+      const deviceColors = [];
+      
+      <% @link.device_type_stats.each do |device, count| %>
+        deviceLabels.push('<%= device %>');
+        deviceData.push(<%= count %>);
+        deviceColors.push('<%= device.downcase == "mobile" ? "rgba(255, 99, 132, 0.8)" : (device.downcase == "tablet" ? "rgba(54, 162, 235, 0.8)" : "rgba(75, 192, 192, 0.8)") %>');
+      <% end %>
+      
+      const devicesChart = new Chart(
+        document.getElementById('deviceChart').getContext('2d'),
+        {
+          type: 'doughnut',
+          data: {
+            labels: deviceLabels,
+            datasets: [{
+              data: deviceData,
+              backgroundColor: deviceColors,
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  boxWidth: 12,
+                  padding: 10
+                }
+              }
+            }
+          }
+        }
+      );
+    });
+  <% end %>
+</script> 

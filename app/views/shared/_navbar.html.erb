@@ -1,0 +1,50 @@
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" data-controller="navbar">
+  <div class="container">
+    <%= link_to "AK Catalyst", root_path, class: "navbar-brand" %>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <%= link_to "Home", "#home", class: "nav-link", data: { turbo_frame: "main_content" } %>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Services
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><%= link_to "Hindu Gods Encyclopedia", "http://localhost:3001", class: "dropdown-item", target: "_blank" %></li>
+            <li><%= link_to "React App Home", "http://localhost:3002", class: "dropdown-item", target: "_blank" %></li>
+            <li><%= link_to "Marriage Profiles", marriage_profiles.root_path, class: "dropdown-item" %></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><%= link_to "All Services", "#services", class: "dropdown-item", data: { turbo_frame: "main_content" } %></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <%= link_to "About", "#about", class: "nav-link", data: { turbo_frame: "main_content" } %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "Contact", "#contact", class: "nav-link", data: { turbo_frame: "main_content" } %>
+        </li>
+      </ul>
+      <ul class="navbar-nav">
+        <% if user_signed_in? %>
+          <li class="nav-item">
+            <%= link_to "My Profile", marriage_profiles.profiles_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= button_to "Sign Out", user_sign_out_path, method: :delete, class: "nav-link btn btn-link" %>
+          </li>
+        <% else %>
+          <li class="nav-item">
+            <%= link_to "Sign In", user_sign_in_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to "Sign Up", user_sign_up_path, class: "nav-link btn btn-primary text-white ms-2" %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav> 

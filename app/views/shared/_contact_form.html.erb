@@ -1,0 +1,25 @@
+<div class="card">
+  <div class="card-body">
+    <%= form_with(model: contact, local: false, data: { controller: "contact-form" }) do |f| %>
+      <div class="mb-3">
+        <%= f.text_field :name, class: "form-control #{'is-invalid' if contact.errors[:name].any?}", placeholder: "Your Name" %>
+        <% if contact.errors[:name].any? %>
+          <div class="invalid-feedback"><%= contact.errors[:name].join(", ") %></div>
+        <% end %>
+      </div>
+      <div class="mb-3">
+        <%= f.email_field :email, class: "form-control #{'is-invalid' if contact.errors[:email].any?}", placeholder: "Your Email" %>
+        <% if contact.errors[:email].any? %>
+          <div class="invalid-feedback"><%= contact.errors[:email].join(", ") %></div>
+        <% end %>
+      </div>
+      <div class="mb-3">
+        <%= f.text_area :message, class: "form-control #{'is-invalid' if contact.errors[:message].any?}", rows: 5, placeholder: "Your Message" %>
+        <% if contact.errors[:message].any? %>
+          <div class="invalid-feedback"><%= contact.errors[:message].join(", ") %></div>
+        <% end %>
+      </div>
+      <%= f.submit "Send Message", class: "btn btn-primary w-100" %>
+    <% end %>
+  </div>
+</div> 

@@ -1,0 +1,412 @@
+<div class="container mt-4">
+  <% profile_type_badge = case @profile.profile_type
+                          when 'marriage'
+                            '<span class="badge bg-danger">Marriage Profile</span>'
+                          when 'professional'
+                            '<span class="badge bg-success">Professional Profile</span>'
+                          else
+                            '<span class="badge bg-info">Generic Profile</span>'
+                          end %>
+  
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <% if @profile.photo.present? || @profile.photo2.present? || @profile.photo3.present? %>
+          <div id="profileCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+              <% if @profile.photo.present? %>
+                <button type="button" data-bs-target="#profileCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+              <% end %>
+              <% if @profile.photo2.present? %>
+                <button type="button" data-bs-target="#profileCarousel" data-bs-slide-to="<%= @profile.photo.present? ? 1 : 0 %>" <%= !@profile.photo.present? ? 'class="active" aria-current="true"' : '' %>></button>
+              <% end %>
+              <% if @profile.photo3.present? %>
+                <button type="button" data-bs-target="#profileCarousel" data-bs-slide-to="<%= (@profile.photo.present? ? 1 : 0) + (@profile.photo2.present? ? 1 : 0) %>" <%= !@profile.photo.present? && !@profile.photo2.present? ? 'class="active" aria-current="true"' : '' %>></button>
+              <% end %>
+            </div>
+            <div class="carousel-inner">
+              <% if @profile.photo.present? %>
+                <div class="carousel-item active">
+                  <%= image_tag @profile.photo.medium.url, class: "card-img-top d-block w-100" %>
+                </div>
+              <% end %>
+              <% if @profile.photo2.present? %>
+                <div class="carousel-item <%= !@profile.photo.present? ? 'active' : '' %>">
+                  <%= image_tag @profile.photo2.medium.url, class: "card-img-top d-block w-100" %>
+                </div>
+              <% end %>
+              <% if @profile.photo3.present? %>
+                <div class="carousel-item <%= !@profile.photo.present? && !@profile.photo2.present? ? 'active' : '' %>">
+                  <%= image_tag @profile.photo3.medium.url, class: "card-img-top d-block w-100" %>
+                </div>
+              <% end %>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#profileCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#profileCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+        <% else %>
+          <div class="card-img-top bg-light text-center p-5">
+            <i class="fas fa-user fa-5x text-muted"></i>
+          </div>
+        <% end %>
+        <div class="card-body">
+          <h5 class="card-title">
+            <%= @profile.first_name %> <%= @profile.last_name %>
+            <%= profile_type_badge.html_safe %>
+          </h5>
+
+          <p class="card-text">
+            <% if @profile.location.present? %>
+              <strong><i class="fas fa-map-marker-alt me-1"></i> Location:</strong> <%= @profile.location %><br>
+            <% end %>
+            
+            <% if @profile.profile_type == 'marriage' && @profile.date_of_birth.present? %>
+              <strong><i class="fas fa-birthday-cake me-1"></i> Age:</strong> <%= ((Date.today - @profile.date_of_birth) / 365.25).floor %> years<br>
+              <strong><i class="fas fa-venus-mars me-1"></i> Gender:</strong> <%= @profile.gender.titleize if @profile.gender.present? %><br>
+              <% if @profile.occupation.present? %><strong><i class="fas fa-briefcase me-1"></i> Occupation:</strong> <%= @profile.occupation %><br><% end %>
+              <% if @profile.education.present? %><strong><i class="fas fa-graduation-cap me-1"></i> Education:</strong> <%= @profile.education %><br><% end %>
+            <% elsif @profile.profile_type == 'professional' %>
+              <% if @profile.title.present? %><strong><i class="fas fa-id-badge me-1"></i> Title:</strong> <%= @profile.title %><br><% end %>
+              <% if @profile.company.present? %><strong><i class="fas fa-building me-1"></i> Company:</strong> <%= @profile.company %><br><% end %>
+              <% if @profile.availability.present? %><strong><i class="fas fa-clock me-1"></i> Availability:</strong> <%= @profile.availability %><% end %>
+            <% elsif @profile.profile_type == 'generic' %>
+              <% if @profile.availability_status.present? %><strong><i class="fas fa-clock me-1"></i> Status:</strong> <%= @profile.availability_status %><br><% end %>
+            <% end %>
+          </p>
+          
+          <div class="d-grid gap-2 mt-3">
+            <button onclick="shareProfile()" class="btn btn-success">
+              <i class="fas fa-share-alt me-2"></i>Share Profile
+            </button>
+          </div>
+          <% if current_user == @profile.user %>
+            <div class="btn-group mt-3 d-flex">
+              <%= link_to "Edit Profile", edit_profile_path(@profile), class: "btn btn-primary flex-grow-1" %>
+              <%= button_to "Delete Profile", profile_path(@profile), method: :delete, 
+                  class: "btn btn-danger flex-grow-1", 
+                  data: { confirm: "Are you sure you want to delete this profile?" } %>
+            </div>
+            <div class="mt-2">
+              <%= link_to sharing_profile_path(@profile), class: "btn btn-outline-info btn-sm w-100" do %>
+                <i class="fas fa-chart-line me-1"></i> View Share Analytics
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- Bio card -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h4>About</h4>
+        </div>
+        <div class="card-body">
+          <p class="card-text"><%= @profile.bio %></p>
+        </div>
+      </div>
+      
+      <!-- Profile type specific information -->
+      <% if @profile.profile_type == 'marriage' %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Marriage Profile Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <% if @profile.religion.present? %><p><strong>Religion:</strong> <%= @profile.religion %></p><% end %>
+                <% if @profile.caste.present? %><p><strong>Caste:</strong> <%= @profile.caste %></p><% end %>
+                <% if @profile.income.present? %><p><strong>Income:</strong> <%= @profile.income %></p><% end %>
+                <% if @profile.height.present? %><p><strong>Height:</strong> <%= @profile.height %></p><% end %>
+              </div>
+              <div class="col-md-6">
+                <% if @profile.marital_status.present? %><p><strong>Marital Status:</strong> <%= @profile.marital_status %></p><% end %>
+                <% if @profile.family_details.present? %>
+                  <p><strong>Family Details:</strong><br> <%= @profile.family_details %></p>
+                <% end %>
+              </div>
+            </div>
+            <% if @profile.preferences.present? %>
+              <div class="mt-3">
+                <h5>Partner Preferences</h5>
+                <p><%= @profile.preferences %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% elsif @profile.profile_type == 'professional' %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Professional Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <% if @profile.skills.present? %>
+                  <p><strong>Skills:</strong><br>
+                  <%= @profile.skills %></p>
+                <% end %>
+                <% if @profile.experience.present? %>
+                  <p><strong>Experience:</strong><br>
+                  <%= @profile.experience %></p>
+                <% end %>
+                <% if @profile.education.present? %>
+                  <p><strong>Education:</strong><br>
+                  <%= @profile.education %></p>
+                <% end %>
+              </div>
+              <div class="col-md-6">
+                <% if @profile.portfolio_links.present? %>
+                  <p><strong>Portfolio Links:</strong><br>
+                  <%= auto_link(@profile.portfolio_links, html: { target: '_blank' }) %></p>
+                <% end %>
+                <% if @profile.contact_email.present? %>
+                  <p><strong>Contact Email:</strong><br>
+                  <%= mail_to @profile.contact_email %></p>
+                <% end %>
+                <% if @profile.resume.present? %>
+                  <p><strong>Resume:</strong><br>
+                  <%= link_to "Download Resume", @profile.resume.url, class: "btn btn-sm btn-outline-primary", target: "_blank" %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% elsif @profile.profile_type == 'generic' %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Additional Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <% if @profile.hobbies.present? %>
+                  <p><strong>Hobbies & Interests:</strong><br>
+                  <%= @profile.hobbies %></p>
+                <% end %>
+              </div>
+              <div class="col-md-6">
+                <% if @profile.social_links.present? %>
+                  <p><strong>Social Media:</strong><br>
+                  <%= auto_link(@profile.social_links, html: { target: '_blank' }) %></p>
+                <% end %>
+              </div>
+            </div>
+            <% if @profile.cover_image.present? %>
+              <div class="mt-3">
+                <h5>Cover Image</h5>
+                <%= image_tag @profile.cover_image.url, class: "img-fluid rounded" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shareModalLabel">Share Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Copy this link to share <%= @profile.first_name %>'s profile:</p>
+        <div class="input-group">
+          <input type="text" id="shareUrl" class="form-control" value="<%= request.base_url + trackable_share_url(@profile) %>" readonly>
+          <button class="btn btn-outline-primary" type="button" onclick="copyShareLink()">Copy</button>
+        </div>
+        <div id="copyMessage" class="text-success mt-2" style="display: none;">
+          Link copied to clipboard!
+        </div>
+        <div class="mt-3">
+          <p class="text-muted small">This is a tracked link. Share statistics are available to profile owners.</p>
+          <% if current_user == @profile.user %>
+            <div class="d-flex justify-content-between mt-2">
+              <%= link_to sharing_profile_path(@profile), class: "btn btn-sm btn-outline-info" do %>
+                <i class="fas fa-chart-line me-1"></i> View Share Analytics
+              <% end %>
+              
+              <% 
+                existing_link = ShareLinkTracker::Link.find_by(original_url: profile_url(@profile))
+                full_share_url = request.base_url + trackable_share_url(@profile)
+                qr_code_url = "https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=#{CGI.escape(full_share_url)}"
+              %>
+              
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                <i class="fas fa-qrcode me-1"></i> Show QR Code
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="qrCodeModalLabel">QR Code</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="small text-muted mb-2">Scan this code to open the profile</p>
+        <img src="<%= qr_code_url %>" class="img-fluid" alt="QR Code for profile">
+        <p class="small mt-2"><%= @profile.first_name %> <%= @profile.last_name %>'s Profile</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function shareProfile() {
+    // Check if the Web Share API is available
+    if (navigator.share) {
+      navigator.share({
+        title: '<%= "#{@profile.first_name} #{@profile.last_name} - #{@profile.profile_type.titleize} Profile" %>',
+        text: 'Check out <%= "#{@profile.first_name}" %>\'s profile!',
+        url: '<%= request.base_url + trackable_share_url(@profile) %>'
+      }).catch(console.error);
+    } else {
+      // Fallback to modal if Web Share API isn't available
+      var shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+      shareModal.show();
+    }
+  }
+
+  function copyShareLink() {
+    var copyText = document.getElementById("shareUrl");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand("copy");
+    
+    // Show success message
+    document.getElementById("copyMessage").style.display = "block";
+    
+    // Hide after 3 seconds
+    setTimeout(function() {
+      document.getElementById("copyMessage").style.display = "none";
+    }, 3000);
+  }
+</script>
+
+<% if @profile.passcode_enabled? && !current_user %>
+  <%= render 'passcode_form' %>
+<% else %>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-body">
+            <h1 class="card-title"><%= @profile.name %></h1>
+            <p class="card-text"><%= @profile.bio %></p>
+            
+            <% if @profile.photos.any? %>
+              <div id="profileCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                  <% @profile.photos.each_with_index do |photo, index| %>
+                    <div class="carousel-item <%= 'active' if index == 0 %>">
+                      <%= image_tag photo.image.url, class: "d-block w-100" %>
+                    </div>
+                  <% end %>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#profileCarousel" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#profileCarousel" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Next</span>
+                </button>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Share Profile</h5>
+            <button onclick="shareProfile()" class="btn btn-primary w-100 mb-3">
+              <i class="fas fa-share-alt"></i> Share Profile
+            </button>
+            
+            <div class="input-group mb-3">
+              <input type="text" id="shareLink" class="form-control" value="<%= trackable_share_url(@profile) %>" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="copyShareLink()">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            
+            <% if @profile.passcode_enabled? %>
+              <div class="alert alert-info">
+                <i class="fas fa-lock"></i> This profile is protected with a passcode
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Share Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <input type="text" id="modalShareLink" class="form-control" value="<%= trackable_share_url(@profile) %>" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyModalShareLink()">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function shareProfile() {
+      if (navigator.share) {
+        navigator.share({
+          title: '<%= @profile.name %>',
+          text: 'Check out this profile',
+          url: '<%= trackable_share_url(@profile) %>'
+        });
+      } else {
+        new bootstrap.Modal(document.getElementById('shareModal')).show();
+      }
+    }
+
+    function copyShareLink() {
+      const shareLink = document.getElementById('shareLink');
+      shareLink.select();
+      document.execCommand('copy');
+      alert('Link copied to clipboard!');
+    }
+
+    function copyModalShareLink() {
+      const modalShareLink = document.getElementById('modalShareLink');
+      modalShareLink.select();
+      document.execCommand('copy');
+      alert('Link copied to clipboard!');
+    }
+  </script>
+<% end %> 

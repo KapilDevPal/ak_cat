@@ -1,0 +1,14 @@
+<div class="nested-fields">
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-10">
+          <%= f.file_field :image, class: "form-control", accept: "image/*" %>
+        </div>
+        <div class="col-md-2">
+          <%= link_to_remove_association "Remove", f, class: "btn btn-danger" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
