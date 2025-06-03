@@ -65,7 +65,7 @@ group :test do
 end
 
 gem "byebug"
-gem "groupdate", "~> 6.5"
+gem "groupdate", "~> 6.7"
 
 # Local plugins
 gem "share_link_tracker", path: "share_link_tracker"
